@@ -13,7 +13,7 @@ VAE | CVAE
 --- | --- 
 <img src="https://github.com/timbmg/VAE-CVAE-MNIST/blob/master/figs/1519649452.702026/E9-Dist.png" width="400"> | <img src="https://github.com/timbmg/VAE-CVAE-MNIST/blob/master/figs/1519649461.195146/E9-Dist.png" width="400">
 
-## Samples
+## p(X|Z) and p(X|Z,c)
 
 VAE | CVAE
 --- | --- 
