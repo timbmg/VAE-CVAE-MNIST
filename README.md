@@ -1,4 +1,4 @@
-# Variational Autoencoder & Conditional Autoenoder on MNIST
+# Variational Autoencoder & Conditional Variational Autoenoder on MNIST
 
 VAE paper: [Auto-Encoding Variational Bayes](https://arxiv.org/abs/1312.6114)
 
