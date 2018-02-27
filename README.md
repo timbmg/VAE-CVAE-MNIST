@@ -13,7 +13,7 @@ In order to run _conditional_ variational autoencoder, add `--conditional` to th
 
 All plots obtained after 10 epochs of training. Hyperparameters accordning to default settings in the code; not tuned.
 
-### q(z|x) and q(z|x,c)
+### z ~ q(z|x) and q(z|x,c)
 The modeled latent distribution after 10 epochs and 100 samples per digit.
 
 VAE | CVAE
