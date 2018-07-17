@@ -41,7 +41,7 @@ def main(args):
         )
 
     if torch.cuda.is_available():
-        vae = vae.cuda() 
+        vae.cuda() 
 
     optimizer = torch.optim.Adam(vae.parameters(), lr=args.learning_rate)
 
@@ -115,9 +115,6 @@ def main(args):
                         plt.imshow(x[p].view(28,28).data.cpu().numpy())
                         plt.axis('off')
 
-
-                    
-
                     plt.savefig(os.path.join(args.fig_root, str(ts), "E%iI%i.png"%(epoch, iteration)), dpi=300)
                     plt.clf()
                     plt.close()
@@ -137,7 +134,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--epochs", type=int, default=10)
-    parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--learning_rate", type=float, default=0.001)
     parser.add_argument("--encoder_layer_sizes", type=list, default=[784, 256])
     parser.add_argument("--decoder_layer_sizes", type=list, default=[256, 784])
