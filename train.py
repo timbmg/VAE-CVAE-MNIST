@@ -17,6 +17,10 @@ from models import VAE
 def main(args):
 
     ts = time.time()
+    if not os.path.exists(os.path.join(args.fig_root, str(ts))):
+        if not(os.path.exists(os.path.join(args.fig_root))):
+            os.mkdir(os.path.join(args.fig_root))
+        os.mkdir(os.path.join(args.fig_root, str(ts)))
 
     datasets = OrderedDict()
     datasets['train'] = MNIST(root='data', train=True, transform=transforms.ToTensor(), download=True)
@@ -36,10 +40,15 @@ def main(args):
         num_labels= 10 if args.conditional else 0
         )
 
+    if torch.cuda.is_available():
+        vae.cuda() 
+
     optimizer = torch.optim.Adam(vae.parameters(), lr=args.learning_rate)
 
 
     tracker_global = defaultdict(torch.FloatTensor)
+
+    iteration_start_time = time.time()
 
     for epoch in range(args.epochs):
 
@@ -64,9 +73,9 @@ def main(args):
 
                 for i, yi in enumerate(y.data):
                     id = len(tracker_epoch)
-                    tracker_epoch[id]['x'] = z[i, 0].data[0]
-                    tracker_epoch[id]['y'] = z[i, 1].data[0]
-                    tracker_epoch[id]['label'] = yi[0]
+                    tracker_epoch[id]['x'] = z[i, 0].item()
+                    tracker_epoch[id]['y'] = z[i, 1].item()
+                    tracker_epoch[id]['label'] = yi.item()
 
 
                 loss = loss_fn(recon_x, x, mean, log_var)
@@ -76,12 +85,20 @@ def main(args):
                     loss.backward()
                     optimizer.step()
 
-                tracker_global['loss'] = torch.cat((tracker_global['loss'], loss.data/x.size(0)))
-                tracker_global['it'] = torch.cat((tracker_global['it'], torch.Tensor([epoch*len(data_loader)+iteration])))
+                if( tracker_global['loss'].dim() < 2 ):
+                    tracker_global['loss'] = loss.data/x.size(0)
+                else:
+                    tracker_global['loss'] = torch.cat( (tracker_global['loss'], loss.data/x.size(0)) )
+
+                if( tracker_global['it'].dim() < 2 ):
+                    tracker_global['it'] = torch.Tensor([epoch*len(data_loader)+iteration])
+                else:
+                    tracker_global['it'] = torch.cat((tracker_global['it'], torch.Tensor([epoch*len(data_loader)+iteration])))
 
                 if iteration % args.print_every == 0 or iteration == len(data_loader)-1:
-                    print("Batch %04d/%i, Loss %9.4f"%(iteration, len(data_loader)-1, loss.data[0]))
-
+                    time_delta = time.time() - iteration_start_time
+                    print("Batch %04d/%i, Loss %9.4f, Time %2.3f"%(iteration, len(data_loader)-1, loss.item(), time_delta))
+                    iteration_start_time = time.time()
 
                     if args.conditional:
                         c=to_var(torch.arange(0,10).long().view(-1,1))
@@ -95,14 +112,8 @@ def main(args):
                         plt.subplot(5,2,p+1)
                         if args.conditional:
                             plt.text(0,0,"c=%i"%c.data[p][0], color='black', backgroundcolor='white', fontsize=8)
-                        plt.imshow(x[p].view(28,28).data.numpy())
+                        plt.imshow(x[p].view(28,28).data.cpu().numpy())
                         plt.axis('off')
-
-
-                    if not os.path.exists(os.path.join(args.fig_root, str(ts))):
-                        if not(os.path.exists(os.path.join(args.fig_root))):
-                            os.mkdir(os.path.join(args.fig_root))
-                        os.mkdir(os.path.join(args.fig_root, str(ts)))
 
                     plt.savefig(os.path.join(args.fig_root, str(ts), "E%iI%i.png"%(epoch, iteration)), dpi=300)
                     plt.clf()
@@ -112,6 +123,11 @@ def main(args):
             df = pd.DataFrame.from_dict(tracker_epoch, orient='index')
             g = sns.lmplot(x='x', y='y', hue='label', data=df.groupby('label').head(100), fit_reg=False, legend=True)
             g.savefig(os.path.join(args.fig_root, str(ts), "E%i-Dist.png"%epoch), dpi=300)
+
+            plt.close('all')
+        print("Finished Epoch: ", epoch)
+
+    print("Total Time: ", time.time() - ts)
 
 
 if __name__ == '__main__':

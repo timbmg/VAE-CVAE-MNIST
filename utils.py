@@ -9,9 +9,11 @@ def to_var(x, volatile=False):
 def idx2onehot(idx, n):
 
     assert idx.size(1) == 1
-    assert torch.max(idx).data[0] < n
+    assert torch.max(idx).data.item() < n
 
     onehot = torch.zeros(idx.size(0), n)
+    if torch.cuda.is_available():
+        onehot = onehot.cuda() #fix for error in idx.data being a cuda tensor
     onehot.scatter_(1, idx.data, 1)
     onehot = to_var(onehot)
     
