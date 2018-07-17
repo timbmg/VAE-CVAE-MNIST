@@ -64,9 +64,9 @@ def main(args):
 
                 for i, yi in enumerate(y.data):
                     id = len(tracker_epoch)
-                    tracker_epoch[id]['x'] = z[i, 0].data[0]
-                    tracker_epoch[id]['y'] = z[i, 1].data[0]
-                    tracker_epoch[id]['label'] = yi[0]
+                    tracker_epoch[id]['x'] = z[i, 0].item()
+                    tracker_epoch[id]['y'] = z[i, 1].item()
+                    tracker_epoch[id]['label'] = yi.item()
 
 
                 loss = loss_fn(recon_x, x, mean, log_var)
@@ -76,11 +76,18 @@ def main(args):
                     loss.backward()
                     optimizer.step()
 
-                tracker_global['loss'] = torch.cat((tracker_global['loss'], loss.data/x.size(0)))
-                tracker_global['it'] = torch.cat((tracker_global['it'], torch.Tensor([epoch*len(data_loader)+iteration])))
+                if( tracker_global['loss'].dim() < 2 ):
+                    tracker_global['loss'] = loss.data/x.size(0)
+                else:
+                    tracker_global['loss'] = torch.cat( (tracker_global['loss'], loss.data/x.size(0)) )
+
+                if( tracker_global['it'].dim() < 2 ):
+                    tracker_global['it'] = torch.Tensor([epoch*len(data_loader)+iteration])
+                else:
+                    tracker_global['it'] = torch.cat((tracker_global['it'], torch.Tensor([epoch*len(data_loader)+iteration])))
 
                 if iteration % args.print_every == 0 or iteration == len(data_loader)-1:
-                    print("Batch %04d/%i, Loss %9.4f"%(iteration, len(data_loader)-1, loss.data[0]))
+                    print("Batch %04d/%i, Loss %9.4f"%(iteration, len(data_loader)-1, loss.item()))
 
 
                     if args.conditional:
@@ -112,6 +119,8 @@ def main(args):
             df = pd.DataFrame.from_dict(tracker_epoch, orient='index')
             g = sns.lmplot(x='x', y='y', hue='label', data=df.groupby('label').head(100), fit_reg=False, legend=True)
             g.savefig(os.path.join(args.fig_root, str(ts), "E%i-Dist.png"%epoch), dpi=300)
+
+            plt.close('all')
 
 
 if __name__ == '__main__':

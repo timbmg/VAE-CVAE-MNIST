@@ -1,0 +1,17 @@
+# .gitignore
+
+# Ignore repo specific directories
+figs/
+data/
+
+# Ignore backup files
+*.bak
+*.dbg
+*.swp
+*~
+
+# Ignore other files
+*.pyc
+*DS_Store
+*.ipynb_checkpoints
+
