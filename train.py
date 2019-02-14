@@ -19,6 +19,8 @@ def main(args):
     if torch.cuda.is_available():
         torch.cuda.manual_seed(args.seed)
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     ts = time.time()
 
     dataset = MNIST(
@@ -39,7 +41,7 @@ def main(args):
         latent_size=args.latent_size,
         decoder_layer_sizes=args.decoder_layer_sizes,
         conditional=args.conditional,
-        num_labels=10 if args.conditional else 0)
+        num_labels=10 if args.conditional else 0).to(device)
 
     optimizer = torch.optim.Adam(vae.parameters(), lr=args.learning_rate)
 
@@ -50,6 +52,8 @@ def main(args):
         tracker_epoch = defaultdict(lambda: defaultdict(dict))
 
         for iteration, (x, y) in enumerate(data_loader):
+
+            x, y = x.to(device), y.to(device)
 
             if args.conditional:
                 recon_x, mean, log_var, z = vae(x, y)
