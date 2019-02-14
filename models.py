@@ -1,11 +1,13 @@
 import torch
 import torch.nn as nn
 
-from utils import to_var, idx2onehot
+from utils import idx2onehot
+
 
 class VAE(nn.Module):
 
-    def __init__(self, encoder_layer_sizes, latent_size, decoder_layer_sizes, conditional=False, num_labels=0):
+    def __init__(self, encoder_layer_sizes, latent_size, decoder_layer_sizes,
+                 conditional=False, num_labels=0):
 
         super().__init__()
 
@@ -18,17 +20,22 @@ class VAE(nn.Module):
 
         self.latent_size = latent_size
 
-        self.encoder = Encoder(encoder_layer_sizes, latent_size, conditional, num_labels)
-        self.decoder = Decoder(decoder_layer_sizes, latent_size, conditional, num_labels)
+        self.encoder = Encoder(
+            encoder_layer_sizes, latent_size, conditional, num_labels)
+        self.decoder = Decoder(
+            decoder_layer_sizes, latent_size, conditional, num_labels)
 
     def forward(self, x, c=None):
+
+        if x.dim() > 2:
+            x = x.view(-1, 28*28)
 
         batch_size = x.size(0)
 
         means, log_var = self.encoder(x, c)
 
         std = torch.exp(0.5 * log_var)
-        eps = to_var(torch.randn([batch_size, self.latent_size]))
+        eps = torch.randn([batch_size, self.latent_size])
         z = eps * std + means
 
         recon_x = self.decoder(z, c)
@@ -38,12 +45,11 @@ class VAE(nn.Module):
     def inference(self, n=1, c=None):
 
         batch_size = n
-        z = to_var(torch.randn([batch_size, self.latent_size]))
+        z = torch.randn([batch_size, self.latent_size])
 
         recon_x = self.decoder(z, c)
 
         return recon_x
-
 
 
 class Encoder(nn.Module):
@@ -58,10 +64,10 @@ class Encoder(nn.Module):
 
         self.MLP = nn.Sequential()
 
-        for i, (in_size, out_size) in enumerate( zip(layer_sizes[:-1], layer_sizes[1:]) ):
-            self.MLP.add_module(name="L%i"%(i), module=nn.Linear(in_size, out_size))
-            self.MLP.add_module(name="A%i"%(i), module=nn.ReLU())
-
+        for i, (in_size, out_size) in enumerate(zip(layer_sizes[:-1], layer_sizes[1:])):
+            self.MLP.add_module(
+                name="L{:d}".format(i), module=nn.Linear(in_size, out_size))
+            self.MLP.add_module(name="A{:d}".format(i), module=nn.ReLU())
 
         self.linear_means = nn.Linear(layer_sizes[-1], latent_size)
         self.linear_log_var = nn.Linear(layer_sizes[-1], latent_size)
@@ -94,10 +100,11 @@ class Decoder(nn.Module):
         else:
             input_size = latent_size
 
-        for i, (in_size, out_size) in enumerate( zip([input_size]+layer_sizes[:-1], layer_sizes)):
-            self.MLP.add_module(name="L%i"%(i), module=nn.Linear(in_size, out_size))
+        for i, (in_size, out_size) in enumerate(zip([input_size]+layer_sizes[:-1], layer_sizes)):
+            self.MLP.add_module(
+                name="L{:d}".format(i), module=nn.Linear(in_size, out_size))
             if i+1 < len(layer_sizes):
-                self.MLP.add_module(name="A%i"%(i), module=nn.ReLU())
+                self.MLP.add_module(name="A{:d}".format(i), module=nn.ReLU())
             else:
                 self.MLP.add_module(name="sigmoid", module=nn.Sigmoid())
 
