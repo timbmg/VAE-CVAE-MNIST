@@ -80,9 +80,11 @@ def main(args):
 
                 if args.conditional:
                     c = torch.arange(0, 10).long().unsqueeze(1)
-                    x = vae.inference(n=c.size(0), c=c)
+                    z = torch.randn([c.size(0), args.latent_size], device='cuda')
+                    x = vae.inference(z, c=c)
                 else:
-                    x = vae.inference(n=10)
+                    z = torch.randn([10, args.latent_size], device='cuda')
+                    x = vae.inference(z)
 
                 plt.figure()
                 plt.figure(figsize=(5, 10))
@@ -92,7 +94,7 @@ def main(args):
                         plt.text(
                             0, 0, "c={:d}".format(c[p].item()), color='black',
                             backgroundcolor='white', fontsize=8)
-                    plt.imshow(x[p].view(28, 28).data.numpy())
+                    plt.imshow(x[p].view(28, 28).cpu().data.numpy())
                     plt.axis('off')
 
                 if not os.path.exists(os.path.join(args.fig_root, str(ts))):
