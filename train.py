@@ -80,10 +80,10 @@ def main(args):
 
                 if args.conditional:
                     c = torch.arange(0, 10).long().unsqueeze(1)
-                    z = torch.randn([c.size(0), args.latent_size], device='cuda')
+                    z = torch.randn([c.size(0), args.latent_size], device=device)
                     x = vae.inference(z, c=c)
                 else:
-                    z = torch.randn([10, args.latent_size], device='cuda')
+                    z = torch.randn([10, args.latent_size], device=device)
                     x = vae.inference(z)
 
                 plt.figure()
