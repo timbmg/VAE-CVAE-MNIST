@@ -79,11 +79,11 @@ def main(args):
                     epoch, args.epochs, iteration, len(data_loader)-1, loss.item()))
 
                 if args.conditional:
-                    c = torch.arange(0, 10).long().unsqueeze(1)
-                    z = torch.randn([c.size(0), args.latent_size], device=device)
+                    c = torch.arange(0, 10).long().unsqueeze(1).to(device)
+                    z = torch.randn([c.size(0), args.latent_size]).to(device)
                     x = vae.inference(z, c=c)
                 else:
-                    z = torch.randn([10, args.latent_size], device=device)
+                    z = torch.randn([10, args.latent_size]).to(device)
                     x = vae.inference(z)
 
                 plt.figure()
