@@ -21,7 +21,7 @@ VAE | CVAE
 <img src="https://github.com/timbmg/VAE-CVAE-MNIST/blob/master/figs/1519649452.702026/E9-Dist.png" width="400"> | <img src="https://github.com/timbmg/VAE-CVAE-MNIST/blob/master/figs/1519649461.195146/E9-Dist.png" width="400">
 
 ### p(x|z) and p(x|z,c)
-Randonly sampled z, and their output. For CVAE, each c has been given as input once.
+Randomly sampled z, and their output. For CVAE, each c has been given as input once.
 
 VAE | CVAE
 --- | --- 
