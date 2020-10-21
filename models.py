@@ -30,22 +30,20 @@ class VAE(nn.Module):
         if x.dim() > 2:
             x = x.view(-1, 28*28)
 
-        batch_size = x.size(0)
-
         means, log_var = self.encoder(x, c)
-
-        std = torch.exp(0.5 * log_var)
-        eps = torch.randn([batch_size, self.latent_size])
-        z = eps * std + means
-
+        z = self.reparameterize(means, log_var)
         recon_x = self.decoder(z, c)
 
         return recon_x, means, log_var, z
 
-    def inference(self, n=1, c=None):
+    def reparameterize(self, mu, log_var):
 
-        batch_size = n
-        z = torch.randn([batch_size, self.latent_size])
+        std = torch.exp(0.5 * log_var)
+        eps = torch.randn_like(std)
+
+        return mu + eps * std
+
+    def inference(self, z, c=None):
 
         recon_x = self.decoder(z, c)
 
